@@ -1,0 +1,98 @@
+name: compose-dev-env-sweet_carver
+services:
+  backend:
+    build:
+      context: C:\Users\Андрей\.docker\devenvironments\compose-dev-env-sweet_carver\repository\backend
+      dockerfile: Dockerfile
+      target: development
+    depends_on:
+      db:
+        condition: service_started
+    labels:
+      com.docker.devenvironments: "true"
+      com.docker.devenvironments.compose: "true"
+      com.docker.devenvironments.compose.build: "true"
+      com.docker.devenvironments.name: compose-dev-env-sweet_carver
+    networks:
+      default: null
+    secrets:
+    - source: db-password
+  db:
+    command:
+    - infinity
+    entrypoint:
+    - sleep
+    environment:
+      MYSQL_DATABASE: example
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db-password
+    expose:
+    - "3306"
+    healthcheck:
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -h
+      - 127.0.0.1
+      - --silent
+      interval: 3s
+      retries: 5
+      start_period: 30s
+    image: mariadb
+    init: true
+    labels:
+      com.docker.devenvironments: "true"
+      com.docker.devenvironments.compose: "true"
+      com.docker.devenvironments.container: "true"
+      com.docker.devenvironments.name: compose-dev-env-sweet_carver
+    networks:
+      default: null
+    restart: always
+    secrets:
+    - source: db-password
+    stop_signal: SIGKILL
+    volumes:
+    - type: volume
+      source: db-data
+      target: /var/lib/mysql
+      volume: {}
+    - type: volume
+      source: volume-compose-dev-env-sweet_carver
+      target: /com.docker.devenvironments.code
+    - type: volume
+      source: vsCodeServerVolume-compose-dev-env-sweet_carver-db
+      target: /home/vscode
+  proxy:
+    build:
+      context: C:\Users\Андрей\.docker\devenvironments\compose-dev-env-sweet_carver\repository\proxy
+      dockerfile: Dockerfile
+    depends_on:
+      backend:
+        condition: service_started
+    labels:
+      com.docker.devenvironments: "true"
+      com.docker.devenvironments.compose: "true"
+      com.docker.devenvironments.compose.build: "true"
+      com.docker.devenvironments.name: compose-dev-env-sweet_carver
+    networks:
+      default: null
+    ports:
+    - mode: ingress
+      target: 80
+      published: "8080"
+      protocol: tcp
+networks:
+  default:
+    name: compose-dev-env-sweet_carver_default
+volumes:
+  db-data:
+    name: compose-dev-env-sweet_carver_db-data
+  volume-compose-dev-env-sweet_carver:
+    name: volume-compose-dev-env-sweet_carver
+    external: true
+  vsCodeServerVolume-compose-dev-env-sweet_carver-db:
+    name: vsCodeServerVolume-compose-dev-env-sweet_carver-db
+secrets:
+  db-password:
+    name: compose-dev-env-sweet_carver_db-password
+    file: C:\Users\Андрей\.docker\devenvironments\compose-dev-env-sweet_carver\repository\db\password.txt
